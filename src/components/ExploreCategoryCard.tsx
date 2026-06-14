@@ -1,4 +1,4 @@
-import type { Category } from "@/data/categoriesData";
+import type { Category } from "@/types";
 
 interface ExploreCategoryCardProps {
 	category: Category;
@@ -10,7 +10,7 @@ export default function ExploreCategoryCard({ category, onClick }: ExploreCatego
 		<button
 			type="button"
 			onClick={onClick}
-			style={{ backgroundColor: category.backgroundColor }}
+			style={{ backgroundColor: category.bgColor }}
 			className="flex h-[189px] w-full flex-col justify-between overflow-hidden rounded-[18px] p-4 text-left transition-transform hover:scale-[1.02] md:h-[220px]"
 		>
 			<div className="flex flex-1 items-start justify-center overflow-hidden">

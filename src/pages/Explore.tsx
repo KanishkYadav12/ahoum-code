@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, type ChangeEvent, type ReactNode } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { FiHeart, FiGrid, FiSearch, FiUser } from "react-icons/fi";
-import { IoCartOutline } from "react-icons/io5";
+import { FiGrid, FiHeart, FiUser } from "react-icons/fi";
+import { IoCartOutline, IoOptionsOutline } from "react-icons/io5";
 import { TbSearch } from "react-icons/tb";
+
 import Sidebar from "@/components/layout/Sidebar";
 import ExploreCategoryCard from "@/components/ExploreCategoryCard";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useExploreStore } from "@/stores/exploreStore";
+import FilterSheet from "@/components/FilterSheet";
 
+import { categories } from "@/data/categories";
+import { useFilterStore } from "@/stores/filterStore";
+import { type ReactNode } from "react";
 
 function BottomNavIcon({ active, children }: { active: boolean; children: ReactNode }) {
 	return <span className={active ? "text-[#4CAF82]" : "text-[#7C7C7C]"}>{children}</span>;
@@ -17,92 +20,115 @@ function BottomNavIcon({ active, children }: { active: boolean; children: ReactN
 
 export default function Explore() {
 	const router = useRouter();
-	const searchQuery = useExploreStore((state) => state.searchQuery);
-	const filteredCategories = useExploreStore((state) => state.filteredCategories);
-	const isLoading = useExploreStore((state) => state.isLoading);
-	const fetchCategories = useExploreStore((state) => state.fetchCategories);
-	const setSearchQuery = useExploreStore((state) => state.setSearchQuery);
-	const debouncedSearch = useDebounce(searchQuery, 300);
+	const [searchQuery, setSearchQuery] = useState("");
+	const openFilter = useFilterStore((state) => state.openFilter);
 
-	useEffect(() => {
-		fetchCategories();
-	}, [fetchCategories]);
-
-	useEffect(() => {
-		setSearchQuery(debouncedSearch);
-	}, [debouncedSearch, setSearchQuery]);
-
-	const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
-		setSearchQuery(event.target.value);
-	};
+	const filteredCategories = categories.filter((category) =>
+		category.name.toLowerCase().includes(searchQuery.toLowerCase())
+	);
 
 	return (
 		<div className="min-h-screen bg-white pb-[92px] md:flex md:bg-[#F8F8F8] md:pb-0">
 			<Sidebar />
+
 			<main className="flex-1 md:ml-[240px]">
-				<div className="md:sticky md:top-0 md:z-30 md:bg-white md:px-8 md:py-4 md:shadow-sm">
-					<div className="mx-auto hidden max-w-7xl md:flex md:items-center md:gap-6">
-						<h1 className="whitespace-nowrap text-[24px] font-bold text-[#181725]">Find Products</h1>
-						<div className="flex h-[52px] max-w-[500px] flex-1 items-center gap-3 rounded-[15px] bg-[#F2F3F2] px-4">
-							<FiSearch className="h-[18px] w-[18px] text-[#7C7C7C]" aria-hidden="true" />
-							<input type="text" value={searchQuery} onChange={handleSearchChange} placeholder="Search Store" className="w-full bg-transparent text-[16px] font-normal text-[#7C7C7C] outline-none placeholder:text-[#7C7C7C]" />
-						</div>
-					</div>
-				</div>
+				<header className="sticky top-0 z-40 bg-white px-6 pt-4 pb-4 md:static md:px-8 md:pt-8">
+					<h1 className="text-center font-poppins text-[20px] font-bold text-[#181725] md:text-left md:text-[24px]">
+						Find Products
+					</h1>
 
-				<div className="fixed left-0 right-0 top-0 z-50 bg-white md:hidden">
-					<h1 className="mt-2 text-center text-[20px] font-bold text-[#181725]">Find Products</h1>
-					<div className="mx-6 mt-3 mb-4">
-						<div className="flex h-[52px] items-center gap-3 rounded-[15px] bg-[#F2F3F2] px-4">
-							<FiSearch className="h-[18px] w-[18px] text-[#7C7C7C]" aria-hidden="true" />
-							<input type="text" value={searchQuery} onChange={handleSearchChange} placeholder="Search Store" className="w-full bg-transparent text-[16px] font-normal text-[#7C7C7C] outline-none placeholder:text-[#7C7C7C]" />
+					<div className="mt-5 flex items-center gap-2">
+						<div className="relative flex-1">
+							<TbSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-[#181725]" />
+							<input
+								type="text"
+								placeholder="Search Store"
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="h-[52px] w-full rounded-[15px] bg-[#F2F3F2] pl-12 pr-4 font-poppins text-[14px] font-semibold placeholder-[#7C7C7C] outline-none"
+							/>
 						</div>
+						<button
+							type="button"
+							onClick={openFilter}
+							className="flex h-[52px] w-[52px] items-center justify-center rounded-[15px] bg-[#F2F3F2] md:hidden"
+						>
+							<IoOptionsOutline className="text-[20px] text-[#181725]" />
+						</button>
 					</div>
-				</div>
+				</header>
 
-				<div className="mx-auto max-w-7xl px-4 pt-[176px] md:px-8 md:pt-6">
-					{isLoading ? (
-						<div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
-							{Array.from({ length: 8 }).map((_, index) => <div key={index.toString()} className="h-[189px] w-full animate-pulse rounded-[18px] bg-[#F2F3F2] md:h-[220px]" />)}
-						</div>
-					) : filteredCategories.length > 0 ? (
-						<div className="grid grid-cols-2 gap-[15px] md:grid-cols-4 md:gap-5">
-							{filteredCategories.map((category) => <ExploreCategoryCard key={category.id} category={category} onClick={() => router.push(`/products?category=${category.id}`)} />)}
-						</div>
-					) : (
-						<div className="mt-20 flex flex-col items-center justify-center gap-4 pb-8 text-center">
-							<span className="text-[48px]">🔍</span>
-							<p className="text-[18px] font-semibold text-[#181725]">No categories found</p>
-							<p className="text-[14px] text-[#7C7C7C]">Try a different search term</p>
-						</div>
-					)}
+				<div className="px-6 md:px-8">
+					<div className="mt-4 grid grid-cols-2 gap-4 pb-8 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+						{filteredCategories.map((category) => (
+							<ExploreCategoryCard
+								key={category.id}
+								category={category}
+								onClick={() => {
+									if (category.slug === "beverages") {
+										router.push("/category/beverages");
+									} else {
+										router.push(`/search?category=${category.slug}`);
+									}
+								}}
+							/>
+						))}
+					</div>
 				</div>
 			</main>
 
 			<nav className="fixed bottom-0 left-0 right-0 z-50 h-[92px] bg-white shadow-[2px_-5px_15px_0px_#555E5817] md:hidden">
 				<div className="flex h-full items-center justify-around px-4">
-						<button type="button" onClick={() => router.push("/home")} className="flex flex-col items-center gap-1">
-						<BottomNavIcon active={false}><FiGrid className="h-6 w-6" aria-hidden="true" /></BottomNavIcon>
+					<button
+						type="button"
+						onClick={() => router.push("/home")}
+						className="flex flex-col items-center gap-1"
+					>
+						<BottomNavIcon active={false}>
+							<FiGrid className="h-6 w-6" aria-hidden="true" />
+						</BottomNavIcon>
 						<span className="text-[12px] font-semibold text-[#7C7C7C]">Shop</span>
 					</button>
-					<button type="button" className="flex flex-col items-center gap-1" aria-current="page">
-						<BottomNavIcon active><TbSearch className="h-6 w-6" aria-hidden="true" /></BottomNavIcon>
+					<button type="button" aria-current="page" className="flex flex-col items-center gap-1">
+						<BottomNavIcon active={true}>
+							<TbSearch className="h-6 w-6" aria-hidden="true" />
+						</BottomNavIcon>
 						<span className="text-[12px] font-semibold text-[#4CAF82]">Explore</span>
 					</button>
-						<button type="button" onClick={() => router.push("/cart")} className="flex flex-col items-center gap-1">
-						<BottomNavIcon active={false}><IoCartOutline className="h-6 w-6" aria-hidden="true" /></BottomNavIcon>
+					<button
+						type="button"
+						onClick={() => router.push("/cart")}
+						className="flex flex-col items-center gap-1"
+					>
+						<BottomNavIcon active={false}>
+							<IoCartOutline className="h-6 w-6" aria-hidden="true" />
+						</BottomNavIcon>
 						<span className="text-[12px] font-semibold text-[#7C7C7C]">Cart</span>
 					</button>
-						<button type="button" onClick={() => router.push("/favourites")} className="flex flex-col items-center gap-1">
-						<BottomNavIcon active={false}><FiHeart className="h-6 w-6" aria-hidden="true" /></BottomNavIcon>
-						<span className="text-[12px] font-semibold text-[#7C7C7C]">Favourite</span>
+					<button
+						type="button"
+						onClick={() => router.push("/favourites")}
+						className="flex flex-col items-center gap-1"
+					>
+						<BottomNavIcon active={false}>
+							<FiHeart className="h-6 w-6" aria-hidden="true" />
+						</BottomNavIcon>
+						<span className="text-[12px] font-semibold text-[#7C7C7C]">Favorite</span>
 					</button>
-						<button type="button" onClick={() => router.push("/account")} className="flex flex-col items-center gap-1">
-						<BottomNavIcon active={false}><FiUser className="h-6 w-6" aria-hidden="true" /></BottomNavIcon>
+					<button
+						type="button"
+						onClick={() => router.push("/account")}
+						className="flex flex-col items-center gap-1"
+					>
+						<BottomNavIcon active={false}>
+							<FiUser className="h-6 w-6" aria-hidden="true" />
+						</BottomNavIcon>
 						<span className="text-[12px] font-semibold text-[#7C7C7C]">Account</span>
 					</button>
 				</div>
 			</nav>
+
+			<FilterSheet />
 		</div>
 	);
 }
