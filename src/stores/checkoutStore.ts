@@ -6,6 +6,7 @@ import { PROMO_CODES } from "@/lib/constants";
 import { useToastStore } from "@/stores/toastStore";
 import { useOrderStore } from "@/stores/orderStore";
 import { useAuthStore } from "@/stores/authStore";
+import { PromoCode } from "@/types";
 
 interface CheckoutStore {
 	isCheckoutOpen: boolean;
@@ -40,7 +41,6 @@ export const useCheckoutStore = create<CheckoutStore>()(
 			setOrderFailed: (val) => set({ isOrderFailed: val }),
 			setDeliveryMethod: (method) => set({ deliveryMethod: method }),
 			setPaymentMethod: (method) => set({ paymentMethod: method }),
-			setPromoCode: (code) => set({ promoCode: code }),
 			setPromoCode: (code) => {
 				const trimmed = code ? code.trim().toUpperCase() : null;
 				if (!trimmed) {
@@ -49,7 +49,7 @@ export const useCheckoutStore = create<CheckoutStore>()(
 					return;
 				}
 
-				const promo = (PROMO_CODES as any[]).find((p) => p.code === trimmed);
+				const promo = (PROMO_CODES as readonly PromoCode[]).find((p) => p.code === trimmed);
 				if (!promo) {
 					useToastStore.getState().error("Invalid promo code.");
 					set({ promoCode: null, discount: 0 });
@@ -79,17 +79,14 @@ export const useCheckoutStore = create<CheckoutStore>()(
 			},
 			setDiscount: (discount) => set({ discount }),
 			placeOrder: async () => {
-				// Basic validation before placing order
 				const cartTotal = useCartStore.getState().getTotal();
 				if (cartTotal <= 0) {
 					useToastStore.getState().error("Your cart is empty.");
 					return false;
 				}
 
-				// Simulate server call latency
 				await api.orders.place();
 
-				// Enforce an 80% success rate for orders
 				const success = Math.random() > 0.2;
 
 				if (!success) {
@@ -98,7 +95,6 @@ export const useCheckoutStore = create<CheckoutStore>()(
 					return false;
 				}
 
-				// On success record order, clear cart and reset checkout state, then navigate to success screen
 				const items = useCartStore.getState().items;
 				const address = useAuthStore.getState().user?.address ?? {
 					id: "addr-guest",
@@ -109,7 +105,6 @@ export const useCheckoutStore = create<CheckoutStore>()(
 					pincode: "",
 				};
 
-				// persist order record with promo info
 				useOrderStore.getState().placeOrder(items, address as any, get().promoCode, get().discount);
 
 				useCartStore.getState().clearCart();

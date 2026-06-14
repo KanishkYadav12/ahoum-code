@@ -13,7 +13,7 @@ export default function Sidebar() {
 	const pathname = usePathname();
 
 	const isActive = (href: string): boolean =>
-		pathname === href || (href === "/home" && (pathname === "/" || pathname.startsWith("/category"))) || (href === "/explore" && pathname === "/search");
+		pathname === href || (href === "/home" && (pathname === "/" || pathname?.startsWith("/category"))) || (href === "/explore" && pathname === "/search");
 
 	return (
 		<aside className="hidden md:fixed md:inset-y-0 md:left-0 md:flex md:w-[240px] md:flex-col md:border-r md:border-[#E2E2E2] md:bg-white md:px-6 md:py-8">

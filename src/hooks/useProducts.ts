@@ -73,7 +73,7 @@ export function useBestsellers() {
   }, []);
 
   return {
-    data: store.getBestsellers(),
+    data: store.getBestSelling(),
     loading: store.loading.catalog,
     error: store.error,
   };

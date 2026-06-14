@@ -51,7 +51,7 @@ export default function OrderFailedModal() {
 						</h2>
 
 						<p className="mt-4 font-poppins text-[16px] font-normal leading-[21px] text-[#7C7C7C]">
-							Something went tembly wrong.
+							Something went terribly wrong.
 						</p>
 					</div>
 

@@ -1,7 +1,7 @@
 import { ProductCategory } from "@/types";
 
 export interface FilterOption {
-	id: string;
+	id: ProductCategory | string;
 	label: string;
 }
 

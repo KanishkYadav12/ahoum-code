@@ -1,6 +1,5 @@
-import SignIn from "@/pages/SignIn";
+import Login from "@/pages/Login";
 
 export default function LoginPage() {
-	return <SignIn />;
+	return <Login />;
 }
-

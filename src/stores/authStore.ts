@@ -395,7 +395,11 @@ export const useAuthStore = create<AuthStore>()(
 					currentScreen: state.currentScreen,
 				})),
 
-			logout: () =>
+			logout: () => {
+				if (typeof window !== "undefined") {
+					document.cookie = "nectar_auth=; path=/; max-age=0";
+					document.cookie = "nectar_location=; path=/; max-age=0";
+				}
 				set((state) => ({
 					currentScreen: state.onboardingComplete ? AuthScreen.SignIn : AuthScreen.Onboarding,
 					isAuthenticated: false,
@@ -412,13 +416,8 @@ export const useAuthStore = create<AuthStore>()(
 					signupForm: defaultSignupForm,
 					locationDraft: defaultLocationDraft,
 					authMode: "signin",
-				}),
-				() => {
-					if (typeof window !== "undefined") {
-						document.cookie = "nectar_auth=; path=/; max-age=0";
-						document.cookie = "nectar_location=; path=/; max-age=0";
-					}
-				}),
+				}));
+			},
 		}),
 		{
 			name: "nectar-auth",

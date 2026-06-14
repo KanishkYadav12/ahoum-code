@@ -124,7 +124,7 @@ export default function CheckoutSheet() {
 							<Chevron />
 						</CheckoutRow>
 
-						<CheckoutRow label="Pament" onClick={sheetActions.payment}>
+						<CheckoutRow label="Payment" onClick={sheetActions.payment}>
 							<MastercardMark />
 							<Chevron />
 						</CheckoutRow>

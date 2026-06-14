@@ -35,8 +35,8 @@ interface ProductStore {
 	getProductById: (productId: string) => Product | undefined;
 	getProductsByCategory: (category: ProductCategory) => Product[];
 	getFeaturedProducts: () => Product[];
-	getBestsellers: () => Product[];
-	getExclusiveDeals: () => Product[];
+	getBestSelling: () => Product[];
+	getExclusiveOffers: () => Product[];
 	getRelatedProducts: (productId: string) => Product[];
 	getFilteredProducts: (filters: FilterState) => Product[];
 	getBrands: () => string[];
