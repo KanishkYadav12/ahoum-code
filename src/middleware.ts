@@ -6,8 +6,9 @@ const PUBLIC_ROUTES = [
 	"/onboarding",
 	"/login",
 	"/signup",
-	"/otp",
-	"/location",
+	"/enter-number",
+	"/verification",
+	"/select-location",
 	"/terms",
 	"/conditions",
 ];
@@ -31,7 +32,6 @@ export function middleware(request: NextRequest) {
 
 	// Read auth from cookie
 	const isAuthenticated = request.cookies.get("nectar_auth")?.value === "true";
-	const hasLocation = request.cookies.get("nectar_location")?.value;
 
 	// Root redirect
 	if (pathname === "/") {
@@ -43,15 +43,10 @@ export function middleware(request: NextRequest) {
 		if (!isAuthenticated) {
 			return NextResponse.redirect(new URL("/login", request.url));
 		}
-
-		// Auth but no location → location screen
-		if (!hasLocation && pathname !== "/location") {
-			return NextResponse.redirect(new URL("/location", request.url));
-		}
 	}
 
 	// Auth user accessing public auth routes → home
-	if (PUBLIC_ROUTES.includes(pathname) && isAuthenticated && hasLocation) {
+	if (PUBLIC_ROUTES.includes(pathname) && isAuthenticated) {
 		if (pathname !== "/splash" && pathname !== "/terms" && pathname !== "/conditions") {
 			return NextResponse.redirect(new URL("/home", request.url));
 		}

@@ -1,18 +1,20 @@
+import { ProductCategory } from "@/types";
+
 export interface FilterOption {
-	id: number;
+	id: string;
 	label: string;
 }
 
 export const categoryFilters: FilterOption[] = [
-	{ id: 1, label: "Eggs" },
-	{ id: 2, label: "Noodles & Pasta" },
-	{ id: 3, label: "Chips & Crisps" },
-	{ id: 4, label: "Fast Food" },
+	{ id: ProductCategory.DairyEggs, label: "Eggs" },
+	{ id: ProductCategory.BakerySnacks, label: "Noodles & Pasta" },
+	{ id: ProductCategory.BakerySnacks, label: "Chips & Crisps" },
+	{ id: ProductCategory.FreshFruits, label: "Fast Food" },
 ];
 
 export const brandFilters: FilterOption[] = [
-	{ id: 1, label: "Individual Callection" },
-	{ id: 2, label: "Cocola" },
-	{ id: 3, label: "Ifad" },
-	{ id: 4, label: "Kazi Farmas" },
+	{ id: "Individual Collection", label: "Individual Collection" },
+	{ id: "Cocola", label: "Cocola" },
+	{ id: "Ifad", label: "Ifad" },
+	{ id: "Kazi Farmas", label: "Kazi Farmas" },
 ];

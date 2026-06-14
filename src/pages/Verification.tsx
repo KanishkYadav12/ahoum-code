@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import NumericDialer from "@/components/ui/NumericDialer";
+import { useAuthStore } from "@/stores/authStore";
 
 interface VerificationState {
 	code: string;
@@ -46,6 +47,13 @@ function ForwardArrow() {
 
 export default function Verification() {
 	const router = useRouter();
+	const isDev = process.env.NODE_ENV === "development";
+	const verifyOtp = useAuthStore((state) => state.verifyOtp);
+	const sendOtp = useAuthStore((state) => state.sendOtp);
+	const pendingPhone = useAuthStore((state) => state.pendingPhone);
+	const isLoading = useAuthStore((state) => state.isLoading);
+	const error = useAuthStore((state) => state.error);
+	const clearError = useAuthStore((state) => state.clearError);
 	const [state, setState] = useState<VerificationState>({ code: "" });
 	const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -75,12 +83,20 @@ export default function Verification() {
 		handleKeyPress(value);
 	};
 
-	const handleVerify = (): void => {
-		router.push("/select-location");
+	const handleVerify = async (): Promise<void> => {
+		clearError();
+		const success = await verifyOtp(state.code);
+		if (success) {
+			router.push("/select-location");
+		}
 	};
 
-	const handleResend = (): void => {
-		console.log("Resend Code");
+	const handleResend = async (): Promise<void> => {
+		if (!pendingPhone) {
+			return;
+		}
+		clearError();
+		await sendOtp(pendingPhone);
 	};
 
 	const handleDesktopOtpChange = (index: number, value: string): void => {
@@ -139,6 +155,10 @@ export default function Verification() {
 						Enter your 4-digit code
 					</h1>
 
+					{pendingPhone ? (
+						<p className="mt-3 font-poppins text-[14px] text-[#7C7C7C]">Code sent to {pendingPhone}</p>
+					) : null}
+
 					<label className="mt-[32px] font-poppins text-[16px] font-semibold leading-[29px] text-[#7C7C7C]">Code</label>
 
 					<div className="mt-2 h-[40px] w-full max-w-[364px] rounded-[8px] border border-[#E2E2E2] bg-transparent px-4 md:hidden">
@@ -180,7 +200,10 @@ export default function Verification() {
 					<div className="mt-[200px] flex items-center justify-between md:hidden">
 						<button
 							type="button"
-							onClick={handleResend}
+							onClick={() => {
+								void handleResend();
+							}}
+							disabled={isLoading || !pendingPhone}
 							className="font-poppins text-[18px] font-normal leading-[29px] text-[#53B175]"
 						>
 							Resend Code
@@ -188,7 +211,10 @@ export default function Verification() {
 
 						<button
 							type="button"
-							onClick={handleVerify}
+							onClick={() => {
+								void handleVerify();
+							}}
+							disabled={isLoading}
 							className="flex h-[67px] w-[67px] items-center justify-center rounded-full bg-[#4CAF82] text-white"
 							aria-label="Verify"
 						>
@@ -198,19 +224,28 @@ export default function Verification() {
 
 					<button
 						type="button"
-						onClick={handleResend}
-						className="hidden cursor-pointer font-poppins text-[16px] font-normal text-[#53B175] mt-6 text-left md:block"
+						onClick={() => {
+							void handleResend();
+						}}
+						disabled={isLoading || !pendingPhone}
+						className="hidden cursor-pointer font-poppins text-[16px] font-normal text-[#53B175] mt-6 text-left disabled:cursor-not-allowed disabled:opacity-50 md:block"
 					>
 						Resend Code
 					</button>
 
 					<button
 						type="button"
-						onClick={handleVerify}
-						className="hidden h-14 w-full max-w-[364px] rounded-2xl bg-[#4CAF82] font-poppins text-white font-semibold mt-8 md:block"
+						onClick={() => {
+							void handleVerify();
+						}}
+						disabled={isLoading}
+						className="hidden h-14 w-full max-w-[364px] rounded-2xl bg-[#4CAF82] font-poppins text-white font-semibold mt-8 disabled:cursor-not-allowed disabled:opacity-60 md:block"
 					>
-						Verify Code
+						{isLoading ? "Verifying..." : "Verify Code"}
 					</button>
+
+					{error ? <p className="mt-4 font-poppins text-[13px] text-[#D32F2F]">{error}</p> : null}
+					{isDev ? <p className="mt-2 font-poppins text-[12px] text-[#7C7C7C]">Demo OTP: 1234</p> : null}
 				</div>
 
 				<div className="absolute bottom-0 left-0 right-0 md:hidden">

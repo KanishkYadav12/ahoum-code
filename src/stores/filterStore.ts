@@ -2,6 +2,9 @@ import { create } from "zustand";
 import { FilterState, ProductCategory, SortOption } from "@/types";
 
 interface FilterStore extends FilterState {
+  isFilterOpen: boolean;
+  openFilter: () => void;
+  closeFilter: () => void;
   setCategories: (cats: ProductCategory[]) => void;
   toggleCategory: (cat: ProductCategory) => void;
   setBrands: (brands: string[]) => void;
@@ -25,6 +28,11 @@ const defaults: FilterState = {
 
 export const useFilterStore = create<FilterStore>((set, get) => ({
   ...defaults,
+  isFilterOpen: false,
+
+  openFilter: () => set({ isFilterOpen: true }),
+
+  closeFilter: () => set({ isFilterOpen: false }),
 
   setCategories: (categories) => set({ categories }),
 

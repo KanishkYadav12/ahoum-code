@@ -62,7 +62,19 @@ function SocialButton({
 export default function SignIn() {
 	const router = useRouter();
 	const completeMockLogin = useAuthStore((state) => state.completeMockLogin);
+	const sendOtp = useAuthStore((state) => state.sendOtp);
+	const isLoading = useAuthStore((state) => state.isLoading);
+	const error = useAuthStore((state) => state.error);
+	const clearError = useAuthStore((state) => state.clearError);
 	const [phone, setPhone] = useState<string>("");
+
+	const handlePhoneContinue = async (): Promise<void> => {
+		clearError();
+		const success = await sendOtp(phone);
+		if (success) {
+			router.push("/verification");
+		}
+	};
 
 	const handleLogin = (provider: "Google" | "Facebook") => {
 		completeMockLogin({
@@ -106,12 +118,38 @@ export default function SignIn() {
 							<input
 								type="tel"
 								value={phone}
-								onChange={(event) => setPhone(event.target.value)}
+								onChange={(event) => {
+									setPhone(event.target.value);
+									if (error) {
+										clearError();
+									}
+								}}
+								onKeyDown={(event) => {
+									if (event.key === "Enter") {
+										event.preventDefault();
+										void handlePhoneContinue();
+									}
+								}}
 								placeholder="Phone number"
 								className="min-w-0 flex-1 bg-transparent font-poppins text-[16px] text-[#030303] outline-none placeholder:text-[#828282]"
 							/>
 						</div>
 					</div>
+
+					<button
+						type="button"
+						onClick={() => {
+							void handlePhoneContinue();
+						}}
+						disabled={isLoading}
+						className="mt-4 flex h-[56px] w-full max-w-[364px] items-center justify-center rounded-[16px] bg-[#4CAF82] font-poppins text-[16px] font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
+					>
+						{isLoading ? "Sending OTP..." : "Continue with Phone"}
+					</button>
+
+					{error ? (
+						<p className="mt-3 max-w-[364px] font-poppins text-[13px] text-[#D32F2F]">{error}</p>
+					) : null}
 
 					<div className="mt-10 flex items-center gap-3 md:mt-8">
 						<div className="h-px flex-1 bg-[#E2E2E2]" />

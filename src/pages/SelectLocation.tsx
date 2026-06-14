@@ -111,7 +111,11 @@ export default function SelectLocation() {
 	};
 
 	const handleSubmit = (): void => {
-		router.push("/home");
+		const selectedArea = state.area || (areaOptions.length > 0 ? areaOptions[0] : "");
+		const locationValue = selectedArea ? `${state.zone}, ${selectedArea}` : state.zone;
+
+		document.cookie = `nectar_location=${encodeURIComponent(locationValue)}; path=/; max-age=604800`;
+		window.location.assign("/home");
 	};
 
 	return (

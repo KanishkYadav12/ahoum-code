@@ -30,11 +30,11 @@ function SheetShell({ children }: { children: ReactNode }) {
 export default function FilterSheet() {
 	const isFilterOpen = useFilterStore((state) => state.isFilterOpen);
 	const closeFilter = useFilterStore((state) => state.closeFilter);
-	const applyFilters = useFilterStore((state) => state.applyFilters);
-	const selectedCategories = useFilterStore((state) => state.selectedCategories);
-	const selectedBrands = useFilterStore((state) => state.selectedBrands);
+	const selectedCategories = useFilterStore((state) => state.categories);
+	const selectedBrands = useFilterStore((state) => state.brands);
 	const toggleCategory = useFilterStore((state) => state.toggleCategory);
 	const toggleBrand = useFilterStore((state) => state.toggleBrand);
+	const resetFilters = useFilterStore((state) => state.resetFilters);
 
 	useEffect(() => {
 		if (!isFilterOpen) {
@@ -95,7 +95,13 @@ export default function FilterSheet() {
 					</section>
 				</div>
 
-				<button type="button" onClick={applyFilters} className="absolute bottom-6 left-1/2 h-[67px] w-[calc(100%-50px)] -translate-x-1/2 rounded-[20px] bg-[#4CAF82] font-poppins text-[18px] font-semibold text-white md:w-[364px]">
+				<button
+					type="button"
+					onClick={() => {
+						closeFilter();
+					}}
+					className="absolute bottom-6 left-1/2 h-[67px] w-[calc(100%-50px)] -translate-x-1/2 rounded-[20px] bg-[#4CAF82] font-poppins text-[18px] font-semibold text-white md:w-[364px]"
+				>
 					Apply Filter
 				</button>
 			</SheetShell>
