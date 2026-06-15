@@ -25,6 +25,9 @@ const PROTECTED_ROUTES = [
 	"/order-success",
 	"/track-order",
 	"/checkout",
+	"/reviews",
+	"/nutrition",
+	"/product",
 ];
 
 export function middleware(request: NextRequest) {

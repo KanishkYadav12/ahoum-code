@@ -79,7 +79,9 @@ export default function Home() {
 				<header className="flex flex-col items-center px-6 pt-4 md:hidden">
 					<CarrotIcon width={31} height={31} />
 					<div className="mt-2 flex items-center gap-2 text-[#4C4F4D]">
-						<span className="text-[18px] font-semibold">Dhaka, Banani</span>
+						<span className="text-[18px] font-semibold">
+							{user?.address ? `${user.address.zone}, ${user.address.area}` : "Select Location"}
+						</span>
 					</div>
 					<div className="mt-5 w-full">
 						<div className="relative">

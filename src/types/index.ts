@@ -84,9 +84,10 @@ export interface CartItem {
 
 export interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
-  phone: string;
+  phone?: string;
+  password?: string;
   avatar?: string;
   address?: Address;
 }
@@ -202,8 +203,7 @@ export interface AuthCredentials {
 }
 
 export interface SignupData {
-  name: string;
+  username: string;
   email: string;
-  phone: string;
   password: string;
 }

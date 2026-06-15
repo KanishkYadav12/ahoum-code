@@ -13,11 +13,9 @@ interface LoginFormState {
 }
 
 interface SignupFormState {
-	name: string;
+	username: string;
 	email: string;
-	phone: string;
 	password: string;
-	confirmPassword: string;
 }
 
 interface LocationDraft {
@@ -36,11 +34,9 @@ const defaultLoginForm: LoginFormState = {
 };
 
 const defaultSignupForm: SignupFormState = {
-	name: "",
+	username: "",
 	email: "",
-	phone: "",
 	password: "",
-	confirmPassword: "",
 };
 
 const defaultLocationDraft: LocationDraft = {
@@ -94,12 +90,11 @@ interface AuthStore {
 	logout: () => void;
 }
 
-function buildFallbackUser(name: string, email: string, phone: string): User {
+function buildFallbackUser(username: string, email: string): User {
 	return {
 		id: `u-${Date.now()}`,
-		name,
+		username,
 		email,
-		phone,
 	};
 }
 
@@ -198,7 +193,7 @@ export const useAuthStore = create<AuthStore>()(
 				}),
 
 			sendOtp: async (phone) => {
-				const candidatePhone = (phone ?? get().signupForm.phone).trim();
+				const candidatePhone = (phone ?? "").trim();
 				if (!isValidPhone(candidatePhone)) {
 					set({ error: "Enter a valid phone number." });
 					return false;
@@ -278,12 +273,14 @@ export const useAuthStore = create<AuthStore>()(
 					return false;
 				}
 
+				const user = buildFallbackUser(email.split("@")[0] || "Guest", email.trim());
+
 				set({
 					isLoading: false,
 					isAuthenticated: true,
 					token: response.data.token,
-					user: buildFallbackUser(email.split("@")[0] || "Guest", email.trim(), get().signupForm.phone || ""),
-					currentScreen: AuthScreen.Location,
+					user,
+					currentScreen: get().selectedAddress ? AuthScreen.Location : AuthScreen.Location,
 					hasCompletedAuthFlow: false,
 				});
 
@@ -294,9 +291,9 @@ export const useAuthStore = create<AuthStore>()(
 			},
 
 			signup: async () => {
-				const { name, email, phone, password, confirmPassword } = get().signupForm;
-				if (!name.trim() || name.trim().length < 3) {
-					set({ error: "Name must be at least 3 characters." });
+				const { username, email, password } = get().signupForm;
+				if (!username.trim() || username.trim().length < 3) {
+					set({ error: "Username must be at least 3 characters." });
 					return false;
 				}
 
@@ -305,44 +302,37 @@ export const useAuthStore = create<AuthStore>()(
 					return false;
 				}
 
-				const digits = phone.replace(/\D/g, "");
-				if (!isValidPhone(phone.trim()) || digits.length < 10) {
-					set({ error: "Enter a valid phone number." });
-					return false;
-				}
-
 				if (password.trim().length < 6) {
 					set({ error: "Password must be at least 6 characters." });
 					return false;
 				}
 
-				if (password !== confirmPassword) {
-					set({ error: "Passwords do not match." });
-					return false;
-				}
-
 				set({ isLoading: true, error: null });
-				const response = await api.auth.signup(name.trim(), email.trim(), phone.trim());
+				const response = await api.auth.signup(username.trim(), email.trim(), "");
 
 				if (!response.success) {
 					set({ isLoading: false, error: response.message ?? "Sign up failed." });
 					return false;
 				}
 
+				const user = {
+					id: response.data.userId,
+					username: username.trim(),
+					email: email.trim(),
+				};
+
 				set({
 					isLoading: false,
-					authMode: "signup",
-					pendingPhone: phone.trim(),
-					currentScreen: AuthScreen.OTP,
-					otpSent: true,
-					otpVerified: false,
-					user: {
-						id: response.data.userId,
-						name: name.trim(),
-						email: email.trim(),
-						phone: phone.trim(),
-					},
+					isAuthenticated: true,
+					token: `mock-token-${Date.now()}`,
+					user,
+					currentScreen: AuthScreen.Location,
+					hasCompletedAuthFlow: false,
 				});
+
+				if (typeof window !== "undefined") {
+					document.cookie = "nectar_auth=true; path=/; max-age=604800";
+				}
 				return true;
 			},
 
@@ -382,15 +372,15 @@ export const useAuthStore = create<AuthStore>()(
 			completeMockLogin: (user) =>
 				set((state) => ({
 					isAuthenticated: true,
-					hasCompletedAuthFlow: true,
+					hasCompletedAuthFlow: !!(user?.address || state.selectedAddress),
 					token: `mock-social-token-${Date.now()}`,
 					user: {
 						id: user?.id ?? `u-${Date.now()}`,
-						name: user?.name ?? "Guest",
+						username: user?.username ?? "Guest",
 						email: user?.email ?? "",
 						phone: user?.phone ?? "",
 						avatar: user?.avatar,
-						address: user?.address,
+						address: user?.address || state.selectedAddress || undefined,
 					},
 					currentScreen: state.currentScreen,
 				})),

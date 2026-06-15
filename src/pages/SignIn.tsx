@@ -59,7 +59,7 @@ export default function SignIn() {
 
 	const handleLogin = (provider: "Google" | "Facebook") => {
 		completeMockLogin({
-			name: provider === "Google" ? "Google User" : "Facebook User",
+			username: provider === "Google" ? "Google User" : "Facebook User",
 			email: `${provider.toLowerCase()}@nectar.app`,
 			phone,
 		});
@@ -133,6 +133,14 @@ export default function SignIn() {
 						className="mt-3 flex h-[56px] w-full max-w-[364px] items-center justify-center rounded-[16px] border border-[#E2E2E2] bg-white font-poppins text-[16px] font-semibold text-[#181725] transition-colors hover:bg-gray-50"
 					>
 						Login with Email
+					</button>
+
+					<button
+						type="button"
+						onClick={() => router.push("/signup")}
+						className="mt-3 flex h-[56px] w-full max-w-[364px] items-center justify-center rounded-[16px] border border-[#E2E2E2] bg-white font-poppins text-[16px] font-semibold text-[#181725] transition-colors hover:bg-gray-50"
+					>
+						Sign Up with Email
 					</button>
 
 					{error ? (

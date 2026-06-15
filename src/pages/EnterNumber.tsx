@@ -54,7 +54,6 @@ export default function EnterNumber() {
 	};
 
 	const handleContinue = async (): Promise<void> => {
-		updateSignupForm({ phone: state.phoneNumber });
 		const success = await sendOtp(state.phoneNumber);
 		if (success) {
 			router.push("/verification");

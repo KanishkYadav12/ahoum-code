@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import MapIllustration from "@/components/ui/MapIllustration";
+import { useAuthStore } from "@/stores/authStore";
 
 interface LocationState {
 	zone: string;
@@ -47,13 +48,13 @@ interface SelectCardProps {
 
 function SelectCard({ label, value, placeholder, options, onChange, isPlaceholder = false }: SelectCardProps) {
 	return (
-		<div className="w-full max-w-[364px] rounded-[12px] border border-[#E2E2E2] bg-white p-3">
-			<p className="font-poppins text-[14px] font-semibold text-[#7C7C7C]">{label}</p>
+		<div className="w-full max-w-[364px] border-b border-[#E2E2E2] bg-white py-3">
+			<p className="font-poppins text-[16px] font-semibold text-[#7C7C7C]">{label}</p>
 			<div className="relative mt-1 flex items-center">
 				<select
 					value={value}
 					onChange={(event) => onChange(event.target.value)}
-					className={`w-full appearance-none bg-transparent pr-6 font-poppins text-[16px] outline-none ${isPlaceholder && !value ? "text-[#C4C4C4]" : "text-[#181725] font-semibold"}`}
+					className={`w-full appearance-none bg-transparent pr-6 font-poppins text-[18px] outline-none ${isPlaceholder && !value ? "text-[#B1B1B1]" : "text-[#181725] font-medium"}`}
 				>
 					{placeholder ? (
 						<option value="" disabled>
@@ -76,97 +77,88 @@ function SelectCard({ label, value, placeholder, options, onChange, isPlaceholde
 
 export default function SelectLocation() {
 	const router = useRouter();
+	const { completeLocationSelection, updateLocationDraft, locationDraft } = useAuthStore();
 	const [state, setState] = useState<LocationState>({
-		zone: "Banasree",
-		area: "",
+		zone: locationDraft.zone || "Banasree",
+		area: locationDraft.area || "",
 	});
 
 	const areaOptions = useMemo(() => areasByZone[state.zone] ?? [], [state.zone]);
 
 	const handleZoneChange = (zone: string): void => {
-		setState({ zone, area: "" });
+		const newState = { zone, area: "" };
+		setState(newState);
+		updateLocationDraft(newState);
 	};
 
 	const handleAreaChange = (area: string): void => {
-		setState((current) => ({ ...current, area }));
+		const newState = { ...state, area };
+		setState(newState);
+		updateLocationDraft(newState);
 	};
 
 	const handleSubmit = (): void => {
 		const selectedArea = state.area || (areaOptions.length > 0 ? areaOptions[0] : "");
-		const locationValue = selectedArea ? `${state.zone}, ${selectedArea}` : state.zone;
 
-		document.cookie = `nectar_location=${encodeURIComponent(locationValue)}; path=/; max-age=604800`;
-		window.location.assign("/home");
+		const success = completeLocationSelection({
+			zone: state.zone,
+			area: selectedArea,
+			street: selectedArea, // Using area as street for demo
+			city: "Dhaka",
+			state: "Dhaka",
+			pincode: "1200"
+		});
+
+		if (success) {
+			router.push("/home");
+		}
 	};
 
 	return (
-		<div className="flex min-h-screen flex-col md:flex-row">
-			<div className="relative hidden h-screen w-1/2 flex-col items-center justify-center gap-6 overflow-hidden bg-gradient-to-br from-pink-50 via-purple-50 to-teal-50 md:flex">
-				<div className="absolute right-10 top-20 h-64 w-64 rounded-full bg-pink-200 opacity-30 blur-3xl" />
-				<div className="absolute bottom-20 left-10 h-56 w-56 rounded-full bg-teal-200 opacity-30 blur-3xl" />
+		<div className="flex min-h-screen flex-col bg-white">
+			<button
+				type="button"
+				onClick={() => router.back()}
+				className="ml-6 mt-6 w-fit text-[#181725]"
+				aria-label="Go back"
+			>
+				<BackArrow />
+			</button>
 
-				<div className="z-10 h-[300px] w-[300px]">
-					<MapIllustration className="h-full w-full" />
-				</div>
-
-				<div className="z-10 px-12 text-center">
-					<h2 className="font-poppins text-[28px] font-semibold text-[#181725]">Find your area</h2>
-					<p className="mt-3 font-poppins text-base text-[#7C7C7C]">
-						Select your zone and area to get fresh groceries delivered to your door
-					</p>
-				</div>
-			</div>
-
-			<div className="relative flex min-h-screen w-full flex-col overflow-hidden bg-white md:w-1/2">
-				<div className="absolute right-0 top-0 h-52 w-52 rounded-full bg-pink-200 opacity-30 blur-3xl md:hidden" />
-				<div className="absolute bottom-0 left-0 h-44 w-44 rounded-full bg-purple-200 opacity-20 blur-3xl md:hidden" />
-
-
-				<button
-					type="button"
-					onClick={() => router.push("/verification")}
-					className="relative z-10 ml-6 mt-4 w-fit text-[#181725] md:ml-12 md:mt-8"
-					aria-label="Go back"
-				>
-					<BackArrow />
-				</button>
-
-				<div className="relative z-10 mt-4 flex justify-center md:hidden">
+			<div className="flex flex-col px-6 pt-8">
+				<div className="flex justify-center">
 					<MapIllustration className="h-[170px] w-[224px]" />
 				</div>
 
-				<div className="relative z-10 mt-6 flex flex-col px-6 md:mt-0 md:flex-1 md:justify-center md:px-12">
-					<h1 className="text-center font-poppins text-[26px] font-semibold text-[#181725] md:text-left md:text-[32px]">
+				<div className="mt-10 flex flex-col items-center text-center">
+					<h1 className="font-poppins text-[26px] font-semibold text-[#181725]">
 						Select Your Location
 					</h1>
 
-					<p className="mt-3 text-center font-poppins text-[16px] leading-[22px] text-[#7C7C7C] md:text-left">
+					<p className="mt-3 font-poppins text-[16px] leading-[22px] text-[#7C7C7C]">
 						Switch on your location to stay in tune with what&apos;s happening in your area
 					</p>
-
-					<div className="mx-auto mt-10 w-full md:mx-0">
-						<SelectCard label="Your Zone" value={state.zone} options={zones} onChange={handleZoneChange} />
-					</div>
-
-					<div className="mx-auto mt-5 w-full md:mx-0">
-						<SelectCard
-							label="Your Area"
-							value={state.area}
-							placeholder="Types of your area"
-							options={areaOptions}
-							onChange={handleAreaChange}
-							isPlaceholder
-						/>
-					</div>
-
-					<button
-						type="button"
-						onClick={handleSubmit}
-						className="mx-auto mt-10 h-[67px] w-full max-w-[364px] rounded-[20px] bg-[#4CAF82] font-poppins text-[18px] font-semibold text-white transition-colors duration-200 hover:brightness-105 md:mx-0 md:h-[56px] md:rounded-2xl"
-					>
-						Submit
-					</button>
 				</div>
+
+				<div className="mt-12 flex flex-col gap-8">
+					<SelectCard label="Your Zone" value={state.zone} options={zones} onChange={handleZoneChange} />
+					<SelectCard
+						label="Your Area"
+						value={state.area}
+						placeholder="Types of your area"
+						options={areaOptions}
+						onChange={handleAreaChange}
+						isPlaceholder
+					/>
+				</div>
+
+				<button
+					type="button"
+					onClick={handleSubmit}
+					className="mt-12 h-[67px] w-full rounded-[19px] bg-[#53B175] font-poppins text-[18px] font-semibold text-white transition-all active:scale-95"
+				>
+					Submit
+				</button>
 			</div>
 		</div>
 	);
