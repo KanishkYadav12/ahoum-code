@@ -45,13 +45,20 @@ function MastercardMark() {
 
 export default function CheckoutSheet() {
 	const router = useRouter();
+
+	// ✅ ALL hooks at the top — before any conditional return
 	const isCheckoutOpen = useCheckoutStore((state) => state.isCheckoutOpen);
 	const closeCheckout = useCheckoutStore((state) => state.closeCheckout);
 	const placeOrder = useCheckoutStore((state) => state.placeOrder);
 	const deliveryMethod = useCheckoutStore((state) => state.deliveryMethod);
 	const paymentMethod = useCheckoutStore((state) => state.paymentMethod);
 	const discount = useCheckoutStore((state) => state.discount);
+	const promoCode = useCheckoutStore((state) => state.promoCode); // ✅ moved out of JSX
 	const getTotals = useCartStore((state) => state.getTotals);
+
+	const [promoOpen, setPromoOpen] = useState(false); // ✅ moved above early return
+	const [promoInput, setPromoInput] = useState("");   // ✅ moved above early return
+
 	const totals = getTotals();
 	const subtotal = totals.subtotal;
 	const deliveryFee = totals.deliveryFee;
@@ -71,18 +78,10 @@ export default function CheckoutSheet() {
 		return () => document.removeEventListener("keydown", handleKeyDown);
 	}, [closeCheckout, isCheckoutOpen]);
 
+	// ✅ Conditional return AFTER all hooks
 	if (!isCheckoutOpen) {
 		return null;
 	}
-
-	const sheetActions = {
-		delivery: () => undefined,
-		payment: () => undefined,
-		promo: () => setPromoOpen((v) => !v),
-	};
-
-	const [promoOpen, setPromoOpen] = useState(false);
-	const [promoInput, setPromoInput] = useState("");
 
 	const applyPromo = () => {
 		if (!promoInput.trim()) return;
@@ -91,18 +90,13 @@ export default function CheckoutSheet() {
 	};
 
 	const handlePlaceOrder = () => {
-		const hasDelivery = deliveryMethod !== null;
-		const hasPayment = paymentMethod !== null;
-
-		if (!hasDelivery || !hasPayment) {
-			return;
-		}
-
 		void placeOrder().then((success) => {
-			if (success) {
-				router.push("/order-success");
-			}
-		});
+    if (success) {
+        router.push("/checkout/success");
+    } else {
+        router.push("/checkout/failure");
+    }
+});
 	};
 
 	return (
@@ -119,18 +113,20 @@ export default function CheckoutSheet() {
 					</div>
 
 					<div className="flex-1 overflow-y-auto pr-1">
-						<CheckoutRow label="Delivery" onClick={sheetActions.delivery}>
+						<CheckoutRow label="Delivery" onClick={() => undefined}>
 							<span className="font-poppins text-[16px] font-semibold text-[#181725]">Select Method</span>
 							<Chevron />
 						</CheckoutRow>
 
-						<CheckoutRow label="Payment" onClick={sheetActions.payment}>
+						<CheckoutRow label="Payment" onClick={() => undefined}>
 							<MastercardMark />
 							<Chevron />
 						</CheckoutRow>
 
-						<CheckoutRow label="Promo Code" onClick={sheetActions.promo}>
-							<span className="font-poppins text-[16px] font-semibold text-[#181725]">{useCheckoutStore((s) => s.promoCode) ?? "Pick discount"}</span>
+						<CheckoutRow label="Promo Code" onClick={() => setPromoOpen((v) => !v)}>
+							<span className="font-poppins text-[16px] font-semibold text-[#181725]">
+								{promoCode ?? "Pick discount"}
+							</span>
 							<Chevron />
 						</CheckoutRow>
 
@@ -143,13 +139,14 @@ export default function CheckoutSheet() {
 										placeholder="Enter promo code"
 										className="flex-1 rounded-lg border border-[#E8E8E8] px-3 py-2 font-poppins text-[14px]"
 									/>
-									<button type="button" onClick={applyPromo} className="rounded-lg bg-[#4CAF82] px-4 py-2 text-white">Apply</button>
+									<button type="button" onClick={applyPromo} className="rounded-lg bg-[#4CAF82] px-4 py-2 text-white">
+										Apply
+									</button>
 								</div>
 								<div className="flex flex-wrap gap-2">
-									{/* quick apply suggestions */}
-									<button type="button" onClick={() => { setPromoInput("NECTAR10"); setPromoOpen(true); }} className="rounded-md border px-3 py-1 text-sm">NECTAR10</button>
-									<button type="button" onClick={() => { setPromoInput("SAVE5"); setPromoOpen(true); }} className="rounded-md border px-3 py-1 text-sm">SAVE5</button>
-									<button type="button" onClick={() => { setPromoInput("FREESHIP"); setPromoOpen(true); }} className="rounded-md border px-3 py-1 text-sm">FREESHIP</button>
+									<button type="button" onClick={() => setPromoInput("NECTAR10")} className="rounded-md border px-3 py-1 text-sm">NECTAR10</button>
+									<button type="button" onClick={() => setPromoInput("SAVE5")} className="rounded-md border px-3 py-1 text-sm">SAVE5</button>
+									<button type="button" onClick={() => setPromoInput("FREESHIP")} className="rounded-md border px-3 py-1 text-sm">FREESHIP</button>
 								</div>
 							</div>
 						)}
@@ -188,7 +185,11 @@ export default function CheckoutSheet() {
 						</p>
 					</div>
 
-					<button type="button" onClick={handlePlaceOrder} className="mt-6 flex h-[67px] w-full items-center justify-center rounded-[20px] bg-[#4CAF82] font-poppins text-[18px] font-semibold text-white transition-transform duration-300 active:scale-[0.99] md:w-[364px] md:self-center">
+					<button
+						type="button"
+						onClick={handlePlaceOrder}
+						className="mt-6 flex h-[67px] w-full items-center justify-center rounded-[20px] bg-[#4CAF82] font-poppins text-[18px] font-semibold text-white transition-transform duration-300 active:scale-[0.99] md:w-[364px] md:self-center"
+					>
 						Place Order
 					</button>
 				</div>

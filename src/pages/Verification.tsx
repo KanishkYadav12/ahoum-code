@@ -1,14 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import NumericDialer from "@/components/ui/NumericDialer";
-import { useAuthStore } from "@/stores/authStore";
-
-interface VerificationState {
-	code: string;
-}
-
 
 function BackArrow() {
 	return (
@@ -28,209 +22,80 @@ function ForwardArrow() {
 
 export default function Verification() {
 	const router = useRouter();
-	const isDev = process.env.NODE_ENV === "development";
-	const verifyOtp = useAuthStore((state) => state.verifyOtp);
-	const sendOtp = useAuthStore((state) => state.sendOtp);
-	const pendingPhone = useAuthStore((state) => state.pendingPhone);
-	const isLoading = useAuthStore((state) => state.isLoading);
-	const error = useAuthStore((state) => state.error);
-	const clearError = useAuthStore((state) => state.clearError);
-	const [state, setState] = useState<VerificationState>({ code: "" });
-	const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+	const [code, setCode] = useState("");
 
-	const handleKeyPress = (key: string): void => {
-		if (!/^\d$/.test(key)) {
-			return;
-		}
-
-		setState((current) => {
-			if (current.code.length >= 4) {
-				return current;
-			}
-			return { code: `${current.code}${key}` };
-		});
-	};
-
-	const handleBackspace = (): void => {
-		setState((current) => ({ code: current.code.slice(0, -1) }));
-	};
-
-	const handleDialerPress = (value: string): void => {
+	const handleDialerPress = (value: string) => {
 		if (value === "backspace") {
-			handleBackspace();
-			return;
-		}
-
-		handleKeyPress(value);
-	};
-
-	const handleVerify = async (): Promise<void> => {
-		clearError();
-		const success = await verifyOtp(state.code);
-		if (success) {
-			router.push("/select-location");
+			setCode((c) => c.slice(0, -1));
+		} else if (code.length < 4) {
+			setCode((c) => `${c}${value}`);
 		}
 	};
 
-	const handleResend = async (): Promise<void> => {
-		if (!pendingPhone) {
-			return;
-		}
-		clearError();
-		await sendOtp(pendingPhone);
-	};
-
-	const handleDesktopOtpChange = (index: number, value: string): void => {
-		const clean = value.replace(/\D/g, "").slice(-1);
-
-		setState((current) => {
-			const chars = current.code.split("");
-			chars[index] = clean;
-			const joined = chars.join("").slice(0, 4);
-			return { code: joined };
-		});
-
-		if (clean && index < 3) {
-			otpRefs.current[index + 1]?.focus();
-		}
-	};
-
-	const handleDesktopOtpKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>): void => {
-		if (event.key === "Backspace" && !state.code[index] && index > 0) {
-			otpRefs.current[index - 1]?.focus();
-		}
-	};
-
-	const mobileDisplayChars = [0, 1, 2, 3].map((idx) => state.code[idx] ?? "-");
+	const displayChars = [0, 1, 2, 3].map((i) => code[i] ?? "-");
 
 	return (
-		<div className="flex min-h-screen flex-col md:flex-row">
-			<div className="relative hidden h-screen w-1/2 overflow-hidden bg-gradient-to-br from-pink-100 via-purple-100 to-orange-100 md:flex md:items-center md:justify-center">
-				<div className="absolute right-20 top-20 h-64 w-64 rounded-full bg-pink-300 opacity-30 blur-3xl" />
-				<div className="absolute bottom-20 left-10 h-48 w-48 rounded-full bg-purple-300 opacity-30 blur-3xl" />
-				<div className="z-10 px-12 text-center">
-					<h2 className="font-poppins text-[32px] font-semibold text-[#181725]">OTP Verification</h2>
-					<p className="mt-4 font-poppins text-lg text-[#7C7C7C]">We sent a 4-digit code to your number</p>
+		<div className="relative flex h-screen flex-col overflow-hidden bg-white">
+			{/* Background blobs */}
+			<div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-pink-200 opacity-40 blur-3xl" />
+			<div className="absolute right-10 top-10 h-32 w-32 rounded-full bg-orange-100 opacity-50 blur-2xl" />
+
+			<div className="relative z-10 flex flex-1 flex-col px-6 pt-4">
+				{/* Back button */}
+				<button
+					type="button"
+					onClick={() => router.push("/enter-number")}
+					className="flex h-6 w-6 items-center justify-center text-[#181725]"
+					aria-label="Go back"
+				>
+					<BackArrow />
+				</button>
+
+				<h1 className="mt-10 max-w-[278px] font-poppins text-[26px] font-semibold leading-[29px] text-[#181725]">
+					Enter your 4-digit code
+				</h1>
+
+				<p className="mt-3 font-poppins text-[14px] text-[#7C7C7C]">
+					Code sent to your number
+				</p>
+
+				<label className="mt-8 font-poppins text-[16px] font-semibold text-[#7C7C7C]">
+					Code
+				</label>
+
+				<div className="mt-2 h-[40px] w-full rounded-[8px] border border-[#E2E2E2] px-4">
+					<div className="flex h-full items-center gap-3 font-poppins text-[18px] text-[#181725]">
+						<span className="animate-pulse">|</span>
+						{displayChars.map((char, idx) => (
+							<span key={idx} className={char === "-" ? "text-[#7C7C7C]" : "text-[#181725]"}>
+								{char}
+							</span>
+						))}
+					</div>
 				</div>
-			</div>
 
-			<div className="relative flex h-screen w-full flex-col overflow-hidden bg-white md:w-1/2">
-				<div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-pink-200 opacity-40 blur-3xl md:hidden" />
-				<div className="absolute right-10 top-10 h-32 w-32 rounded-full bg-orange-100 opacity-50 blur-2xl md:hidden" />
-
-				<div className="md:hidden">
-				</div>
-
-				<div className="relative z-10 flex flex-1 flex-col px-6 pt-4 md:mx-auto md:h-full md:w-full md:max-w-[400px] md:justify-center md:px-12 md:pt-0">
+				{/* Resend + Forward */}
+				<div className="mt-[200px] flex items-center justify-between">
 					<button
 						type="button"
-						onClick={() => router.push("/enter-number")}
-						className="flex h-6 w-6 items-center justify-center text-[#181725]"
-						aria-label="Go back"
-					>
-						<BackArrow />
-					</button>
-
-					<h1 className="mt-[40px] max-w-[278px] font-poppins text-[26px] font-semibold leading-[29px] text-[#181725] md:text-[32px]">
-						Enter your 4-digit code
-					</h1>
-
-					{pendingPhone ? (
-						<p className="mt-3 font-poppins text-[14px] text-[#7C7C7C]">Code sent to {pendingPhone}</p>
-					) : null}
-
-					<label className="mt-[32px] font-poppins text-[16px] font-semibold leading-[29px] text-[#7C7C7C]">Code</label>
-
-					<div className="mt-2 h-[40px] w-full max-w-[364px] rounded-[8px] border border-[#E2E2E2] bg-transparent px-4 md:hidden">
-						<div className="flex h-full items-center gap-3 font-poppins text-[18px] text-[#181725]">
-							<span className="animate-pulse">|</span>
-							{mobileDisplayChars.map((char, idx) => (
-								<span key={idx.toString()} className={char === "-" ? "text-[#7C7C7C]" : "text-[#181725]"}>
-									{char}
-								</span>
-							))}
-						</div>
-					</div>
-
-					<div className="hidden gap-3 mt-4 md:flex">
-						{[0, 1, 2, 3].map((index) => {
-							const value = state.code[index] ?? "";
-							const isFilled = value.length > 0;
-
-							return (
-								<input
-									key={index.toString()}
-									ref={(node) => {
-										otpRefs.current[index] = node;
-									}}
-									type="text"
-									inputMode="numeric"
-									maxLength={1}
-									value={value}
-									onChange={(event) => handleDesktopOtpChange(index, event.target.value)}
-									onKeyDown={(event) => handleDesktopOtpKeyDown(index, event)}
-									className={`h-16 w-16 rounded-[12px] border-2 text-center font-poppins text-[24px] font-semibold text-[#181725] outline-none ${
-										isFilled ? "border-[#4CAF82]" : "border-[#E2E2E2]"
-									}`}
-								/>
-							);
-						})}
-					</div>
-
-					<div className="mt-[200px] flex items-center justify-between md:hidden">
-						<button
-							type="button"
-							onClick={() => {
-								void handleResend();
-							}}
-							disabled={isLoading || !pendingPhone}
-							className="font-poppins text-[18px] font-normal leading-[29px] text-[#53B175]"
-						>
-							Resend Code
-						</button>
-
-						<button
-							type="button"
-							onClick={() => {
-								void handleVerify();
-							}}
-							disabled={isLoading}
-							className="flex h-[67px] w-[67px] items-center justify-center rounded-full bg-[#4CAF82] text-white"
-							aria-label="Verify"
-						>
-							<ForwardArrow />
-						</button>
-					</div>
-
-					<button
-						type="button"
-						onClick={() => {
-							void handleResend();
-						}}
-						disabled={isLoading || !pendingPhone}
-						className="hidden cursor-pointer font-poppins text-[16px] font-normal text-[#53B175] mt-6 text-left disabled:cursor-not-allowed disabled:opacity-50 md:block"
+						className="font-poppins text-[18px] font-normal text-[#53B175]"
 					>
 						Resend Code
 					</button>
-
 					<button
 						type="button"
-						onClick={() => {
-							void handleVerify();
-						}}
-						disabled={isLoading}
-						className="hidden h-14 w-full max-w-[364px] rounded-2xl bg-[#4CAF82] font-poppins text-white font-semibold mt-8 disabled:cursor-not-allowed disabled:opacity-60 md:block"
+						onClick={() => router.push("/select-location")}
+						className="flex h-[67px] w-[67px] items-center justify-center rounded-full bg-[#4CAF82] text-white"
+						aria-label="Continue"
 					>
-						{isLoading ? "Verifying..." : "Verify Code"}
+						<ForwardArrow />
 					</button>
-
-					{error ? <p className="mt-4 font-poppins text-[13px] text-[#D32F2F]">{error}</p> : null}
-					{isDev ? <p className="mt-2 font-poppins text-[12px] text-[#7C7C7C]">Demo OTP: 1234</p> : null}
 				</div>
+			</div>
 
-				<div className="absolute bottom-0 left-0 right-0 md:hidden">
-					<NumericDialer onKeyPress={handleDialerPress} className="mix-blend-multiply" />
-				</div>
+			{/* Numeric Dialer */}
+			<div className="absolute bottom-0 left-0 right-0">
+				<NumericDialer onKeyPress={handleDialerPress} className="mix-blend-multiply" />
 			</div>
 		</div>
 	);

@@ -6,7 +6,7 @@ const navItems = [
 	{ label: "Explore", href: "/explore" },
 	{ label: "Cart", href: "/cart" },
 	{ label: "Favourites", href: "/favourites" },
-	{ label: "Account", href: "/home" },
+	{ label: "Account", href: "/account" }, // ✅ was "/home"
 ];
 
 export default function Sidebar() {
