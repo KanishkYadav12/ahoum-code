@@ -1,0 +1,26 @@
+your message describing what you changed
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# interactive rebase in progress; onto 6c75206
+# Last command done (1 command done):
+#    pick 15f7d2f your message describing what you changed
+# No commands remaining.
+# You are currently rebasing branch 'fix/nectar-app-completion-14105459491177126709' on '6c75206'.
+#
+# Changes to be committed:
+#	new file:   src/app/(auth)/signin/page.tsx
+#	new file:   src/app/checkout/failure/page.tsx
+#	new file:   src/app/checkout/success/page.tsx
+#	modified:   src/components/CheckoutSheet.tsx
+#	modified:   src/components/layout/Sidebar.tsx
+#	modified:   src/data/filterData.ts
+#	new file:   src/data/filterStore.ts
+#	modified:   src/pages/Cart.tsx
+#	modified:   src/pages/Explore.tsx
+#	modified:   src/pages/Favourites.tsx
+#	modified:   src/pages/Home.tsx
+#	modified:   src/pages/SelectLocation.tsx
+#	modified:   src/pages/Verification.tsx
+:wq#
