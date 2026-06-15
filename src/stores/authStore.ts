@@ -15,9 +15,7 @@ interface LoginFormState {
 interface SignupFormState {
 	name: string;
 	email: string;
-	phone: string;
 	password: string;
-	confirmPassword: string;
 }
 
 interface LocationDraft {
@@ -38,9 +36,7 @@ const defaultLoginForm: LoginFormState = {
 const defaultSignupForm: SignupFormState = {
 	name: "",
 	email: "",
-	phone: "",
 	password: "",
-	confirmPassword: "",
 };
 
 const defaultLocationDraft: LocationDraft = {
@@ -198,8 +194,8 @@ export const useAuthStore = create<AuthStore>()(
 				}),
 
 			sendOtp: async (phone) => {
-				const candidatePhone = (phone ?? get().signupForm.phone).trim();
-				if (!isValidPhone(candidatePhone)) {
+				const candidatePhone = phone?.trim();
+				if (!candidatePhone || !isValidPhone(candidatePhone)) {
 					set({ error: "Enter a valid phone number." });
 					return false;
 				}
@@ -282,7 +278,7 @@ export const useAuthStore = create<AuthStore>()(
 					isLoading: false,
 					isAuthenticated: true,
 					token: response.data.token,
-					user: buildFallbackUser(email.split("@")[0] || "Guest", email.trim(), get().signupForm.phone || ""),
+					user: buildFallbackUser(email.split("@")[0] || "Guest", email.trim(), ""),
 					currentScreen: AuthScreen.Location,
 					hasCompletedAuthFlow: false,
 				});
@@ -294,7 +290,7 @@ export const useAuthStore = create<AuthStore>()(
 			},
 
 			signup: async () => {
-				const { name, email, phone, password, confirmPassword } = get().signupForm;
+				const { name, email, password } = get().signupForm;
 				if (!name.trim() || name.trim().length < 3) {
 					set({ error: "Name must be at least 3 characters." });
 					return false;
@@ -305,24 +301,13 @@ export const useAuthStore = create<AuthStore>()(
 					return false;
 				}
 
-				const digits = phone.replace(/\D/g, "");
-				if (!isValidPhone(phone.trim()) || digits.length < 10) {
-					set({ error: "Enter a valid phone number." });
-					return false;
-				}
-
 				if (password.trim().length < 6) {
 					set({ error: "Password must be at least 6 characters." });
 					return false;
 				}
 
-				if (password !== confirmPassword) {
-					set({ error: "Passwords do not match." });
-					return false;
-				}
-
 				set({ isLoading: true, error: null });
-				const response = await api.auth.signup(name.trim(), email.trim(), phone.trim());
+				const response = await api.auth.signup(name.trim(), email.trim(), "");
 
 				if (!response.success) {
 					set({ isLoading: false, error: response.message ?? "Sign up failed." });
@@ -331,18 +316,21 @@ export const useAuthStore = create<AuthStore>()(
 
 				set({
 					isLoading: false,
-					authMode: "signup",
-					pendingPhone: phone.trim(),
-					currentScreen: AuthScreen.OTP,
-					otpSent: true,
-					otpVerified: false,
+					isAuthenticated: true,
+					token: `mock-token-${Date.now()}`,
 					user: {
 						id: response.data.userId,
 						name: name.trim(),
 						email: email.trim(),
-						phone: phone.trim(),
+						phone: "",
 					},
+					currentScreen: AuthScreen.Location,
+					hasCompletedAuthFlow: false,
 				});
+
+				if (typeof window !== "undefined") {
+					document.cookie = "nectar_auth=true; path=/; max-age=604800";
+				}
 				return true;
 			},
 
@@ -379,10 +367,9 @@ export const useAuthStore = create<AuthStore>()(
 					user: state.user ? { ...state.user, address: address ?? undefined } : state.user,
 				})),
 
-			completeMockLogin: (user) =>
+			completeMockLogin: (user) => {
 				set((state) => ({
 					isAuthenticated: true,
-					hasCompletedAuthFlow: true,
 					token: `mock-social-token-${Date.now()}`,
 					user: {
 						id: user?.id ?? `u-${Date.now()}`,
@@ -392,16 +379,19 @@ export const useAuthStore = create<AuthStore>()(
 						avatar: user?.avatar,
 						address: user?.address,
 					},
-					currentScreen: state.currentScreen,
-				})),
+				}));
+				if (typeof window !== "undefined") {
+					document.cookie = "nectar_auth=true; path=/; max-age=604800";
+				}
+			},
 
 			logout: () => {
 				if (typeof window !== "undefined") {
 					document.cookie = "nectar_auth=; path=/; max-age=0";
 					document.cookie = "nectar_location=; path=/; max-age=0";
 				}
-				set((state) => ({
-					currentScreen: state.onboardingComplete ? AuthScreen.SignIn : AuthScreen.Onboarding,
+				set({
+					currentScreen: AuthScreen.Onboarding,
 					isAuthenticated: false,
 					hasCompletedAuthFlow: false,
 					token: null,
@@ -416,15 +406,13 @@ export const useAuthStore = create<AuthStore>()(
 					signupForm: defaultSignupForm,
 					locationDraft: defaultLocationDraft,
 					authMode: "signin",
-				}));
+					onboardingComplete: true,
+				});
 			},
 		}),
 		{
 			name: "nectar-auth",
 			partialize: (state) => ({
-				currentScreen: state.currentScreen,
-				authMode: state.authMode,
-				splashComplete: state.splashComplete,
 				onboardingComplete: state.onboardingComplete,
 				isAuthenticated: state.isAuthenticated,
 				hasCompletedAuthFlow: state.hasCompletedAuthFlow,

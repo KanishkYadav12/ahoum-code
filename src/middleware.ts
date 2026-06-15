@@ -4,11 +4,11 @@ import type { NextRequest } from "next/server";
 const PUBLIC_ROUTES = [
 	"/splash",
 	"/onboarding",
+	"/signin",
 	"/login",
 	"/signup",
 	"/enter-number",
 	"/verification",
-	"/select-location",
 	"/terms",
 	"/conditions",
 ];
@@ -25,6 +25,7 @@ const PROTECTED_ROUTES = [
 	"/order-success",
 	"/track-order",
 	"/checkout",
+	"/select-location",
 ];
 
 export function middleware(request: NextRequest) {

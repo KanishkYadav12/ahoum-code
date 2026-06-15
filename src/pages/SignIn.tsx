@@ -5,17 +5,8 @@ import { useRouter } from "next/navigation";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebookF } from "react-icons/fa";
 import { useAuthStore } from "@/stores/authStore";
+import CarrotIcon from "@/components/CarrotIcon";
 
-
-function CarrotIcon({ className = "" }: { className?: string }) {
-	return (
-		<svg viewBox="0 0 64 64" className={className} fill="currentColor" aria-hidden="true">
-			<path d="M43.4 8.7c2.8 1.6 4.5 4.6 4.5 7.9 0 1.5-.3 3-.9 4.3l-4.2-2.4 1.4-2.4-2.8-1.6-1.4 2.4-4.1-2.4 2.4-4.1-2.8-1.6-2.4 4.1-4.2-2.4c1.4-1 3-1.5 4.7-1.5 2 0 3.9.6 5.5 1.7l1.9-3.4 2.8 1.6-1.5 2.8c.1-.1.2-.1.3-.1z" />
-			<path d="M17.1 34.8C14 39.9 11.4 46 9.2 53.4c-.3 1.1.2 2.3 1.2 2.8 1 .5 2.3.2 3-.7 4.6-6.2 9.1-11.1 13.4-14.7 3.7-3.1 7.1-4.8 10.2-5.1l-5.2-5.2c-1.2 2.3-3.4 4.4-6.5 6.1-3.3 1.9-4.8 1.5-8.2-1.8z" />
-			<path d="M25.8 28.9c2.9 2.9 5.1 3.1 8.7.8 2-1.3 3.7-3 5.1-5.1l-7.2-7.2c-1.9 1.5-3.6 3.2-5 5.1-1.7 2.3-1.8 4.5-1.6 6.4z" />
-		</svg>
-	);
-}
 
 function SocialButton({
 	icon,
@@ -32,7 +23,7 @@ function SocialButton({
 		<button
 			type="button"
 			onClick={onClick}
-			className={`relative flex h-[67px] w-full max-w-[364px] items-center justify-center rounded-[16px] ${bgClassName} px-5 font-poppins text-[16px] font-semibold text-white transition-transform duration-200 hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2`}
+			className={`relative flex h-[67px] w-full max-w-[364px] items-center justify-center rounded-[16px] ${bgClassName} px-5 font-poppins text-[16px] font-semibold text-white transition-transform duration-200 hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-95`}
 		>
 			<span className="absolute left-5 flex items-center">{icon}</span>
 			<span className="text-center">{label}</span>
@@ -63,7 +54,7 @@ export default function SignIn() {
 			email: `${provider.toLowerCase()}@nectar.app`,
 			phone,
 		});
-		router.push("/home");
+		router.push("/select-location");
 	};
 
 	return (
@@ -122,7 +113,7 @@ export default function SignIn() {
 							void handlePhoneContinue();
 						}}
 						disabled={isLoading}
-						className="mt-4 flex h-[56px] w-full max-w-[364px] items-center justify-center rounded-[16px] bg-[#4CAF82] font-poppins text-[16px] font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-60"
+						className="mt-4 flex h-[56px] w-full max-w-[364px] items-center justify-center rounded-[16px] bg-[#4CAF82] font-poppins text-[16px] font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-60 active:scale-95"
 					>
 						{isLoading ? "Sending OTP..." : "Continue with Phone"}
 					</button>
@@ -130,7 +121,7 @@ export default function SignIn() {
 					<button
 						type="button"
 						onClick={() => router.push("/login")}
-						className="mt-3 flex h-[56px] w-full max-w-[364px] items-center justify-center rounded-[16px] border border-[#E2E2E2] bg-white font-poppins text-[16px] font-semibold text-[#181725] transition-colors hover:bg-gray-50"
+						className="mt-3 flex h-[56px] w-full max-w-[364px] items-center justify-center rounded-[16px] border border-[#E2E2E2] bg-white font-poppins text-[16px] font-semibold text-[#181725] transition-colors hover:bg-gray-50 active:scale-95"
 					>
 						Login with Email
 					</button>
@@ -149,7 +140,7 @@ export default function SignIn() {
 
 					<div className="mt-8 flex flex-col items-center gap-3 md:mt-8">
 						<SocialButton
-							icon={<FcGoogle className="h-5 w-5" />}
+							icon={<div className="flex h-6 w-6 items-center justify-center rounded-full bg-white"><FcGoogle className="h-4 w-4" /></div>}
 							label="Continue with Google"
 							bgClassName="bg-[#5383EC]"
 							onClick={() => handleLogin("Google")}

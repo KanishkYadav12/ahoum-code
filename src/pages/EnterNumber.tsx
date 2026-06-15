@@ -29,7 +29,6 @@ function ForwardArrow() {
 export default function EnterNumber() {
 	const router = useRouter();
 	const sendOtp = useAuthStore((state) => state.sendOtp);
-	const updateSignupForm = useAuthStore((state) => state.updateSignupForm);
 	const [state, setState] = useState<PhoneInputState>({ phoneNumber: "" });
 
 	const handleKeyPress = (key: string): void => {
@@ -54,7 +53,6 @@ export default function EnterNumber() {
 	};
 
 	const handleContinue = async (): Promise<void> => {
-		updateSignupForm({ phone: state.phoneNumber });
 		const success = await sendOtp(state.phoneNumber);
 		if (success) {
 			router.push("/verification");
@@ -153,4 +151,3 @@ export default function EnterNumber() {
 		</div>
 	);
 }
-

@@ -2,177 +2,131 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { FiEye, FiEyeOff, FiCheck } from "react-icons/fi";
 import CarrotIcon from "@/components/CarrotIcon";
-
-interface SignUpForm {
-	username: string;
-	email: string;
-	password: string;
-	showPassword: boolean;
-	isEmailValid: boolean;
-}
-
-function validateEmail(email: string): boolean {
-	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-}
-
-
-function CheckIcon() {
-	return (
-		<svg viewBox="0 0 24 24" className="h-5 w-5 text-[#4CAF82]" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-			<path d="m5 13 4 4L19 7" />
-		</svg>
-	);
-}
-
-function EyeIcon({ closed }: { closed: boolean }) {
-	if (!closed) {
-		return (
-			<svg viewBox="0 0 24 24" className="h-5 w-5 text-[#C4C4C4]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-				<path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
-				<circle cx="12" cy="12" r="3" />
-			</svg>
-		);
-	}
-
-	return (
-		<svg viewBox="0 0 24 24" className="h-5 w-5 text-[#C4C4C4]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-			<path d="m3 3 18 18" />
-			<path d="M10.585 10.587a2 2 0 1 0 2.827 2.829" />
-			<path d="M9.879 5.092A10.75 10.75 0 0 1 21.938 12a10.75 10.75 0 0 1-2.166 3.19M6.228 6.228A10.75 10.75 0 0 0 2.062 12a10.75 10.75 0 0 0 13.595 6.444" />
-		</svg>
-	);
-}
+import { useAuthStore } from "@/stores/authStore";
+import { isValidEmail } from "@/lib/utils";
 
 export default function SignUp() {
 	const router = useRouter();
-	const [form, setForm] = useState<SignUpForm>({
-		username: "Afsar Hossen Shuvo",
-		email: "imshuvo97@gmail.com",
-		password: "12345678",
-		showPassword: false,
-		isEmailValid: true,
-	});
+	const { signupForm, updateSignupForm, signup, error, clearError, isLoading } = useAuthStore();
+	const [showPassword, setShowPassword] = useState(false);
 
-	const togglePassword = (): void => {
-		setForm((current) => ({ ...current, showPassword: !current.showPassword }));
+	const handleSignup = async (e: React.FormEvent) => {
+		e.preventDefault();
+		const success = await signup();
+		if (success) {
+			router.push("/select-location");
+		}
 	};
 
-	const handleSignUp = (): void => {
-		router.push("/home");
-	};
+	const isEmailValid = isValidEmail(signupForm.email);
 
 	return (
-		<div className="flex min-h-screen flex-col md:flex-row">
-			<div className="relative hidden h-screen w-1/2 flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-pink-50 via-orange-50 to-green-50 md:flex">
-				<div className="absolute right-10 top-20 h-64 w-64 rounded-full bg-pink-200 opacity-30 blur-3xl" />
-				<div className="absolute bottom-20 left-10 h-56 w-56 rounded-full bg-green-200 opacity-20 blur-3xl" />
-
-				<div className="z-10 flex flex-col items-center">
-					<div className="rounded-lg border-2 border-[#B566E8] p-3">
-						<CarrotIcon width={80} height={80} />
-					</div>
-					<h1 className="mt-4 font-poppins text-[36px] font-bold lowercase text-[#4CAF82]">nectar</h1>
-					<span className="mt-2 border border-[#E91E8C] px-2 py-0.5 font-poppins text-[16px] text-[#7C7C7C]">online groceries</span>
-				</div>
-			</div>
-
-			<div className="relative flex min-h-screen w-full flex-col overflow-hidden bg-white md:w-1/2">
-				<div className="absolute right-0 top-0 h-52 w-52 rounded-full bg-pink-100 opacity-40 blur-3xl md:hidden" />
-				<div className="absolute bottom-10 left-0 h-44 w-44 rounded-full bg-purple-100 opacity-30 blur-3xl md:hidden" />
-
-
-				<div className="relative z-10 mt-4 flex justify-center md:hidden">
-					<div className="rounded-lg border-[1.5px] border-[#B566E8] p-2">
-						<CarrotIcon width={48} height={48} />
-					</div>
+		<main className="flex min-h-screen flex-col bg-white px-6 pt-12 md:items-center md:justify-center md:bg-[#F8F8F8]">
+			<div className="flex w-full flex-col md:max-w-[420px] md:rounded-[20px] md:bg-white md:p-10 md:shadow-lg">
+				<div className="flex justify-center">
+					<CarrotIcon className="h-[55px] w-[47px]" />
 				</div>
 
-				<div className="relative z-10 mt-8 flex flex-col px-6 md:mt-0 md:flex-1 md:justify-center md:px-12">
-					<h1 className="font-poppins text-[26px] font-semibold text-[#181725] md:text-[32px]">Sign Up</h1>
-					<p className="mt-2 font-poppins text-[16px] text-[#7C7C7C]">Enter your credentials to continue</p>
+				<h1 className="mt-24 font-poppins text-[26px] font-semibold text-[#181725] md:mt-10">
+					Sign Up
+				</h1>
+				<p className="mt-3 font-poppins text-[16px] font-medium text-[#7C7C7C]">
+					Enter your credentials to continue
+				</p>
 
-					<div className="mt-10 w-full max-w-[364px] rounded-xl border border-[#E2E2E2] p-3">
-						<label className="font-poppins text-[14px] font-semibold text-[#7C7C7C]">Username</label>
+				<form onSubmit={handleSignup} className="mt-10 flex flex-col md:mt-8">
+					<div className="flex flex-col border-b border-[#E2E2E2] pb-3">
+						<label className="font-poppins text-[16px] font-semibold text-[#7C7C7C]">Username</label>
 						<input
 							type="text"
-							value={form.username}
-							onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))}
-							className="mt-1 w-full bg-transparent font-poppins text-[16px] font-semibold text-[#181725] outline-none"
+							required
+							className="mt-2 bg-transparent font-poppins text-[18px] text-[#181725] outline-none"
+							value={signupForm.name}
+							onChange={(e) => {
+								updateSignupForm({ name: e.target.value });
+								if (error) clearError();
+							}}
 						/>
 					</div>
 
-					<div className="mt-5 w-full max-w-[364px] rounded-xl border border-[#E2E2E2] p-3">
-						<label className="font-poppins text-[14px] font-semibold text-[#7C7C7C]">Email</label>
-						<div className="mt-1 flex items-center">
+					<div className="mt-8 flex flex-col border-b border-[#E2E2E2] pb-3">
+						<label className="font-poppins text-[16px] font-semibold text-[#7C7C7C]">Email</label>
+						<div className="relative flex items-center">
 							<input
 								type="email"
-								value={form.email}
-								onChange={(event) => {
-									const email = event.target.value;
-									setForm((current) => ({
-										...current,
-										email,
-										isEmailValid: validateEmail(email),
-									}));
+								required
+								className="mt-2 w-full bg-transparent font-poppins text-[18px] text-[#181725] outline-none"
+								value={signupForm.email}
+								onChange={(e) => {
+									updateSignupForm({ email: e.target.value });
+									if (error) clearError();
 								}}
-								className="w-full bg-transparent font-poppins text-[16px] font-semibold text-[#181725] outline-none"
 							/>
-							{form.isEmailValid ? (
-								<span className="ml-2">
-									<CheckIcon />
-								</span>
-							) : null}
+							{isEmailValid && (
+								<FiCheck className="absolute right-0 top-1/2 -translate-y-1/2 text-[#53B175]" size={20} />
+							)}
 						</div>
 					</div>
 
-					<div className="mt-5 w-full max-w-[364px] rounded-xl border border-[#E2E2E2] p-3">
-						<label className="font-poppins text-[14px] font-semibold text-[#7C7C7C]">Password</label>
-						<div className="mt-1 flex items-center">
+					<div className="mt-8 flex flex-col border-b border-[#E2E2E2] pb-3">
+						<label className="font-poppins text-[16px] font-semibold text-[#7C7C7C]">Password</label>
+						<div className="relative flex items-center">
 							<input
-								type={form.showPassword ? "text" : "password"}
-								value={form.password}
-								onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
-								className="w-full bg-transparent font-poppins text-[16px] font-semibold text-[#181725] outline-none"
+								type={showPassword ? "text" : "password"}
+								required
+								className="mt-2 w-full bg-transparent font-poppins text-[18px] text-[#181725] outline-none"
+								value={signupForm.password}
+								onChange={(e) => {
+									updateSignupForm({ password: e.target.value });
+									if (error) clearError();
+								}}
 							/>
-							<button type="button" onClick={togglePassword} className="ml-2" aria-label="Toggle password visibility">
-								<EyeIcon closed={!form.showPassword} />
+							<button
+								type="button"
+								className="absolute right-0 top-1/2 -translate-y-1/2 text-[#7C7C7C]"
+								onClick={() => setShowPassword(!showPassword)}
+							>
+								{showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
 							</button>
 						</div>
 					</div>
 
-					<p className="mt-4 max-w-[364px] font-poppins text-[14px] leading-[110%] tracking-[0.05em] text-[#181725]">
+					<p className="mt-4 font-poppins text-[14px] font-medium leading-[22px] text-[#7C7C7C]">
 						By continuing you agree to our{" "}
-						<button type="button" onClick={() => router.push("/terms")} className="cursor-pointer text-[#4CAF82]">
+						<button type="button" className="text-[#53B175]">
 							Terms of Service
-						</button>
-						<br />
+						</button>{" "}
 						and{" "}
-						<button type="button" onClick={() => router.push("/privacy")} className="cursor-pointer text-[#4CAF82]">
-							Privacy Policy.
+						<button type="button" className="text-[#53B175]">
+							Privacy Policy
 						</button>
+						.
 					</p>
+
+					{error && <p className="mt-4 font-poppins text-[14px] text-red-500">{error}</p>}
 
 					<button
-						type="button"
-						onClick={handleSignUp}
-						className="mt-8 h-[67px] w-full max-w-[364px] rounded-[20px] bg-[#4CAF82] font-poppins text-[18px] font-semibold text-white transition-colors duration-200 hover:brightness-105 md:h-[56px] md:rounded-2xl"
+						type="submit"
+						disabled={isLoading}
+						className="mt-8 flex h-[67px] w-full items-center justify-center rounded-[19px] bg-[#53B175] font-poppins text-[18px] font-semibold text-white transition-transform active:scale-95 disabled:opacity-70"
 					>
-						Sign Up
+						{isLoading ? "Signing up..." : "Sign Up"}
 					</button>
 
-					<p className="mt-6 max-w-[364px] text-center font-poppins text-[14px] font-semibold tracking-[0.05em] text-[#181725]">
+					<p className="mt-6 text-center font-poppins text-[14px] font-semibold text-[#181725]">
 						Already have an account?{" "}
-						<button type="button" onClick={() => router.push("/login")} className="cursor-pointer text-[#4CAF82]">
-							Singup
+						<button
+							type="button"
+							onClick={() => router.push("/login")}
+							className="text-[#53B175]"
+						>
+							Login
 						</button>
 					</p>
-				</div>
-
-				<div className="mt-auto flex justify-center pb-2 md:hidden">
-					<div className="h-[5px] w-[134px] rounded-full bg-black/15" />
-				</div>
+				</form>
 			</div>
-		</div>
+		</main>
 	);
 }
