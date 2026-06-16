@@ -14,28 +14,30 @@ export default function Login() {
 	const [showPassword, setShowPassword] = useState(false);
 
 	const handleLogin = async (e: React.FormEvent) => {
-		e.preventDefault();
-		const success = await login();
-		if (success) {
-			if (hasCompletedAuthFlow) {
-				router.push("/home");
-			} else {
-				router.push("/select-location");
-			}
-		}
-	};
+    e.preventDefault();
+    const success = await login();
+    if (success) {
+        const { selectedAddress } = useAuthStore.getState();
+        if (selectedAddress) {
+            router.push("/home");
+        } else {
+            router.push("/select-location");
+        }
+    }
+};
 
 	const handleSocialLogin = (provider: "Google" | "Facebook") => {
-		completeMockLogin({
-			name: `${provider} User`,
-			email: `${provider.toLowerCase()}@example.com`,
-		});
-		if (hasCompletedAuthFlow) {
-			router.push("/home");
-		} else {
-			router.push("/select-location");
-		}
-	};
+    completeMockLogin({
+        name: `${provider} User`,
+        email: `${provider.toLowerCase()}@example.com`,
+    });
+    const { selectedAddress } = useAuthStore.getState();
+    if (selectedAddress) {
+        router.push("/home");
+    } else {
+        router.push("/select-location");
+    }
+};
 
 	return (
 		<main className="flex min-h-screen flex-col bg-white px-6 pt-12 md:items-center md:justify-center md:bg-[#F8F8F8]">
